@@ -13,7 +13,7 @@ bookmarkRouter
       .json(bookmarks);
   })
   .post(bodyParser, (req, res) => {
-    const { title, url, content = " ", rating = "" } = req.body;
+    const { title, url, content, rating } = req.body;
 
     if (!title) {
       logger.error(`Title is required`);
@@ -24,6 +24,20 @@ bookmarkRouter
 
     if (!url) {
       logger.error('url is required');
+      return res
+        .status(400)
+        .send('Invalid data');
+    }
+
+    if (!rating) {
+      logger.error('rating is required');
+      return res
+        .status(400)
+        .send('Invalid data');
+    }
+
+    if (!content) {
+      logger.error('content is required');
       return res
         .status(400)
         .send('Invalid data');
@@ -56,7 +70,7 @@ bookmarkRouter
 
     const bookmarkIndex = bookmarks.findIndex(c => c.id == id);
 
-    console.log("This is the index of the bookmark", bookmarkIndex); 
+    //console.log("This is the index of the bookmark", bookmarkIndex); 
 
     if (bookmarkIndex === -1) {
       logger.error(`Bookmark with id ${id} not found.`);
