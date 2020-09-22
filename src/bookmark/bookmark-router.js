@@ -13,10 +13,10 @@ bookmarkRouter
       .json(bookmarks);
   })
   .post(bodyParser, (req, res) => {
-    const { title, url, content, rating } = req.body;
+    const { title, url, description, rating } = req.body;
 
     if (!title) {
-      logger.error(`Title is required`);
+      logger.error('Title is required');
       return res
         .status(400)
         .send('Invalid data');
@@ -36,8 +36,8 @@ bookmarkRouter
         .send('Invalid data');
     }
 
-    if (!content) {
-      logger.error('content is required');
+    if (!description) {
+      logger.error('description is required');
       return res
         .status(400)
         .send('Invalid data');
@@ -50,7 +50,7 @@ bookmarkRouter
       id,
       title,
       url,
-      content,
+      description,
       rating
     };
 
