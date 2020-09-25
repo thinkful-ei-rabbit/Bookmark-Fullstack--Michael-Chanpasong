@@ -1,5 +1,6 @@
 const express = require('express');
 const { v4: uuid } = require('uuid');
+const xss = require('xss');
 const bookmarkRouter = express.Router();
 const logger = require('../logger');
 const bookmarks = require('../store');
@@ -16,94 +17,82 @@ bookmarkRouter
       })
       .catch(next);
   })
-  .post(bodyParser, (req, res) => {
-    const { title, url, description, rating } = req.body;
-
-    if (!title) {
-      logger.error('Title is required');
-      return res
-        .status(400)
-        .send('Invalid data');
+  .post(bodyParser, (req, res, next) => {
+    const dbKnex = req.app.get('db');
+    const { title, url, rating, description } = req.body;
+    
+    const newBookmark = { title, url, rating, description };
+    
+    for (const [key, value] of Object.entries(newBookmark)) {
+      //Check for empty values
+      if (value == null) {
+        return res.status(400).json({
+          error: { message: `Missing '${key}' in request body` }
+        });
+      }
+    }
+    if(newBookmark.rating > 5 || newBookmark.rating < 0){
+      return res.status(400).json({
+        error: { message: 'Rating should be a number between 1 and 5' }
+      });
+    }
+    if (!newBookmark.url.includes('https://')){
+      return res.status(400).json({
+        error: { message: 'Url should include proper https format' }
+      });
     }
 
-    if (!url) {
-      logger.error('url is required');
-      return res
-        .status(400)
-        .send('Invalid data');
-    }
-
-    if (!rating) {
-      logger.error('rating is required');
-      return res
-        .status(400)
-        .send('Invalid data');
-    }
-
-    if (!description) {
-      logger.error('description is required');
-      return res
-        .status(400)
-        .send('Invalid data');
-    }
-
-    // get an id
-    const id = uuid();
-
-    const bookmark = {
-      id,
-      title,
-      url,
-      description,
-      rating
+    const safeBookmark = {
+      title: xss(newBookmark.title), // sanitize title
+      url: xss(newBookmark.url), // sanitize url
+      rating: (newBookmark.rating),
+      description: xss(newBookmark.description), // sanitize content
     };
-
-    bookmarks.push(bookmark);
-    logger.info(`Bookmark with id ${id} created`);
-
-    res
-      .status(201)
-      .location(`http://localhost:8000/anything/${id}`)
-      .json(bookmark);
+    BookmarkService.insertBookmark(dbKnex, safeBookmark)
+      .then(bookmark => {
+        res
+          .status(201)
+          .location(`/bookmarks/${bookmark.id}`)
+          .json(bookmark);
+      })
+      .catch(next);
   });
 
 bookmarkRouter
   .route('/:id')
-  .get((req, res, next) => {
-    const { id } = req.params;
+  .all((req, res, next) => {
     const dbKnex = req.app.get('db');
-    BookmarkService.getById(dbKnex, id).then(bookmark => {
-      //console.log('This is the bookie', bookmark);
-      if (!bookmark) {
-        logger.error(`Bookmark with id ${id} not found.`);
-        return res
-          .status(404)
-          .json({
+    BookmarkService.getById(
+      dbKnex,
+      req.params.id
+    )
+      .then(bookmark => {
+        if (!bookmark) {
+          return res.status(404).json({
             error: { message: `Bookmark doesn't exist` }
           });
-      }
-      res.json(bookmark);
-    }).catch(next);
+        }
+        res.bookmark = bookmark; // save the article for the next middleware
+        next(); // don't forget to call next so the next middleware happens!
+      })
+      .catch(next);
   })
-  .delete((req, res) => {
-    const { id } = req.params;
-
-    const bookmarkIndex = bookmarks.findIndex(c => c.id == id);
-
-    if (bookmarkIndex === -1) {
-      logger.error(`Bookmark with id ${id} not found.`);
-      return res
-        .status(404)
-        .send('Not found');
-    }
-
-    bookmarks.splice(bookmarkIndex, 1);
-
-    logger.info(`Bookmark with id ${id} deleted.`);
-
-    res
-      .status(204)
-      .end();
+  .get((req, res, next) => {
+    res.json({
+      id: res.bookmark.id,
+      title: xss(res.bookmark.title), // sanitize title
+      url: xss(res.bookmark.url), // sanitize url
+      rating: (res.bookmark.rating),
+      description: xss(res.bookmark.description), // sanitize content
+    });
+  })
+  .delete((req, res, next) => {
+    const dbKnex = req.app.get('db');
+    BookmarkService.deleteBookmark(dbKnex, req.params.id)
+      .then(() => {
+        res.status(204).end();
+      })
+      .catch(next);
   });
 
 module.exports = bookmarkRouter;

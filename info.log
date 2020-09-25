@@ -43,3 +43,25 @@
 {"message":"Bookmark with id 123456 not found.","level":"error"}
 {"message":"Bookmark with id 11 not found.","level":"error"}
 {"message":"Bookmark with id 1133 not found.","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Bookmark with id ac03791f-2f95-4160-9f6f-8ffb0e7f19f9 created","level":"info"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Bookmark with id 4cd43efe-2416-4341-8c3d-e8c1984222f8 created","level":"info"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Bookmark with id 80270ba1-d79a-4b2a-a172-7c919da9688b created","level":"info"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Bookmark with id 870081cc-eecc-4f6a-adb3-514db033d794 created","level":"info"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Bookmark with id 41892beb-a019-4446-9ba1-2f155fac2e1a created","level":"info"}
+{"message":"Bookmark with id b01783ef-248b-4416-a588-5d1a1c93e59c created","level":"info"}
+{"message":"Bookmark with id 6f381908-092c-44d3-ba7f-2bdae25b333c created","level":"info"}
+{"message":"Bookmark with id 95306031-2f39-446b-8d6f-326c46e28c82 created","level":"info"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Bookmark with id 2 not found.","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
+{"message":"Unauthorized request to path: ${req.path}","level":"error"}
