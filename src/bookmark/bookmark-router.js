@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const { v4: uuid } = require('uuid');
 const xss = require('xss');
 const bookmarkRouter = express.Router();
@@ -20,9 +21,9 @@ bookmarkRouter
   .post(bodyParser, (req, res, next) => {
     const dbKnex = req.app.get('db');
     const { title, url, rating, description } = req.body;
-    
+
     const newBookmark = { title, url, rating, description };
-    
+
     for (const [key, value] of Object.entries(newBookmark)) {
       //Check for empty values
       if (value == null) {
@@ -31,12 +32,12 @@ bookmarkRouter
         });
       }
     }
-    if(newBookmark.rating > 5 || newBookmark.rating < 0){
+    if (newBookmark.rating > 5 || newBookmark.rating < 0) {
       return res.status(400).json({
         error: { message: 'Rating should be a number between 1 and 5' }
       });
     }
-    if (!newBookmark.url.includes('https://')){
+    if (!newBookmark.url.includes('https://')) {
       return res.status(400).json({
         error: { message: 'Url should include proper https format' }
       });
@@ -52,7 +53,7 @@ bookmarkRouter
       .then(bookmark => {
         res
           .status(201)
-          .location(`/bookmarks/${bookmark.id}`)
+          .location(path.posix.join(req.originalUrl, `/${bookmark.id}`))
           .json(bookmark);
       })
       .catch(next);
@@ -90,6 +91,39 @@ bookmarkRouter
     const dbKnex = req.app.get('db');
     BookmarkService.deleteBookmark(dbKnex, req.params.id)
       .then(() => {
+        res.status(204).end();
+      })
+      .catch(next);
+  })
+  .patch(bodyParser, (req, res, next) => {
+    const { title, url, rating, description } = req.body;
+    const bookmarkToUpdate = { title, url, rating, description };
+    const dbKnex = req.app.get('db');
+    console.log('This is what we get from wrong param', req.params.id);
+    if (!req.params.id === '') {
+      return res.status(400).json({
+        error: {
+          message: 'Bookmark ID must be supplied in the url param'
+        }
+      });
+    }
+
+    const numberOfValues = Object.values(bookmarkToUpdate).filter(Boolean).length;
+    if (numberOfValues === 0) {
+      return res.status(400).json({
+        error: {
+          message: `Request body must contain either 'title', 'url', 'rating' or 'content'`
+        }
+      });
+    }
+
+    BookmarkService.updateBookmark(
+      dbKnex,
+      req.params.id,
+      bookmarkToUpdate
+    )
+      .then(numRowsAffected => {
+        //console.log('this is what we get back from update bookmark', numRowsAffected);
         res.status(204).end();
       })
       .catch(next);
